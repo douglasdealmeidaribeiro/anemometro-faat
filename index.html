@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anemômetro Caseiro – Medidor de Vento | Colégio FAAT</title>
+  <style>
+    /* =========================================================
+       VARIÁVEIS CSS (IDENTIDADE VISUAL)
+       Cores da escola facilmente editáveis pelo usuário.
+       ========================================================= */
+    :root {
+      /* Cor Principal: usada no cabeçalho, botões principais e destaques */
+      --cor-principal: #0b3c6d;
+      --cor-principal-hover: #082d52;
+
+      /* Cor Secundária: detalhes, bordas, cronômetro e destaques secundários */
+      --cor-secundaria: #f28500;
+      --cor-secundaria-hover: #d97700;
+
+      /* Cores de apoio e neutras */
+      --cor-fundo: #f4f7fa;
+      --cor-cartao: #ffffff;
+      --cor-texto: #1f2937;
+      --cor-texto-suave: #4b5563;
+      --cor-borda: #d1d5db;
+      --cor-sucesso: #15803d;
+      --cor-perigo: #b91c1c;
+
+      /* Sombras e raios de borda */
+      --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --sombra-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --raio-borda: 14px;
+      --raio-pequeno: 8px;
+    }
+
+    /* Reset básico e tipografia */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--cor-fundo);
+      color: var(--cor-texto);
+      line-height: 1.5;
+      padding-bottom: 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================
+       CABEÇALHO COM IDENTIFICAÇÃO DO PROJETO E ESCOLA
+       Mobile-first: logo centralizado acima do texto em telas pequenas.
+       ========================================================= */
+    .cabecalho {
+      background: linear-gradient(135deg, var(--cor-principal) 0%, #102a43 100%);
+      color: #ffffff;
+      padding: 1.25rem 1rem;
+      box-shadow: var(--sombra-md);
+      border-bottom: 4px solid var(--cor-secundaria);
+    }
+
+    .cabecalho-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .logo-escola {
+      max-height: 70px;
+      max-width: 200px;
+      object-fit: contain;
+      background-color: #ffffff;
+      padding: 4px 10px;
+      border-radius: var(--raio-pequeno);
+      box-shadow: var(--sombra-sm);
+    }
+
+    .identificacao h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .identificacao p {
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      margin-bottom: 0.15rem;
+    }
+
+    .destaque-escola {
+      font-weight: 600;
+      color: #fed7aa;
+    }
+
+    /* Em telas maiores (tablets e PCs), alinha logo à esquerda e texto */
+    @media (min-width: 640px) {
+      .cabecalho-container {
+        flex-direction: row;
+        text-align: left;
+        justify-content: flex-start;
+      }
+      .identificacao h1 {
+        justify-content: flex-start;
+        font-size: 1.55rem;
+      }
+    }
+
+    /* =========================================================
+       CONTEÚDO PRINCIPAL E CARTÕES (CONTAINER)
+       ========================================================= */
+    .conteudo-principal {
+      max-width: 900px;
+      width: 100%;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .cartao {
+      background: var(--cor-cartao);
+      border-radius: var(--raio-borda);
+      padding: 1.25rem;
+      box-shadow: var(--sombra-md);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .cartao-titulo {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--cor-principal);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Badge indicando a medição fixa de 10 segundos */
+    .badge-tempo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    /* =========================================================
+       CRONÔMETRO DE 10 SEGUNDOS
+       ========================================================= */
+    .secao-cronometro {
+      background: linear-gradient(to right bottom, #fffaf0, #fff7ed);
+      border: 2px dashed var(--cor-secundaria);
+      border-radius: var(--raio-borda);
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .secao-cronometro.ativo {
+      background: #fffbeb;
+      border-style: solid;
+    }
+
+    .secao-cronometro.finalizado {
+      background: #f0fdf4;
+      border-color: var(--cor-sucesso);
+      animation: pulsoFinal 0.8s ease;
+    }
+
+    @keyframes pulsoFinal {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    .cronometro-display {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--cor-principal);
+      font-variant-numeric: tabular-nums;
+      margin: 0.25rem 0;
+      line-height: 1;
+    }
+
+    .cronometro-instrucao {
+      font-size: 0.88rem;
+      color: var(--cor-texto-suave);
+      margin-bottom: 0.75rem;
+    }
+
+    /* =========================================================
+       FORMULÁRIO E CAMPOS DE ENTRADA
+       ========================================================= */
+    .formulario-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .grupo-campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .rotulo-campo {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--cor-texto);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .entrada-texto {
+      width: 100%;
+      font-size: 1.15rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--cor-borda);
+      border-radius: var(--raio-pequeno);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-color: #fafafa;
+      color: var(--cor-texto);
+      font-weight: 500;
+    }
+
+    .entrada-texto:focus {
+      border-color: var(--cor-principal);
+      box-shadow: 0 0 0 3px rgba(11, 60, 109, 0.2);
+      background-color: #ffffff;
+    }
+
+    .campo-ajuda {
+      font-size: 0.82rem;
+      color: var(--cor-texto-suave);
+      line-height: 1.35;
+    }
+
+    .mensagem-erro {
+      color: var(--cor-perigo);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-height: 1.25rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Linha de botões de ação */
+    .botoes-linha {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    /* =========================================================
+       BOTÕES
+       ========================================================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--raio-pequeno);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      min-height: 48px; /* Fácil de tocar no mobile */
+      flex: 1;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-cronometro {
+      background-color: var(--cor-secundaria);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(242, 133, 0, 0.35);
+    }
+
+    .btn-cronometro:hover:not(:disabled) {
+      background-color: var(--cor-secundaria-hover);
+    }
+
+    .btn-cronometro:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-limpar {
+      background-color: #e5e7eb;
+      color: #374151;
+      flex: 0 0 auto;
+    }
+
+    .btn-limpar:hover {
+      background-color: #d1d5db;
+    }
+
+    .btn-salvar {
+      background-color: var(--cor-principal);
+      color: #ffffff;
+    }
+
+    .btn-salvar:hover {
+      background-color: var(--cor-principal-hover);
+    }
+
+    /* =========================================================
+       DESTAQUE DO RESULTADO
+       ========================================================= */
+    .resultado-painel {
+      background: linear-gradient(145deg, #ffffff, #f0f4f8);
+      border: 3px solid var(--cor-principal);
+      border-radius: var(--raio-borda);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      box-shadow: var(--sombra-md);
+    }
+
+    .resultado-painel .rotulo {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      color: var(--cor-texto-suave);
+    }
+
+    .resultado-principal {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.4rem;
+      margin: 0.5rem 0;
+    }
+
+    .resultado-valor-kmh {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--cor-principal);
+      line-height: 1;
+    }
+
+    .resultado-unidade-kmh {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--cor-principal);
+    }
+
+    /* Classificação Beaufort */
+    .faixa-beaufort {
+      margin-top: 0.5rem;
+      display: inline-block;
+      padding: 0.45rem 1.1rem;
+      background-color: var(--cor-secundaria);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border-radius: 9999px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .beaufort-descricao {
+      font-size: 0.88rem;
+      color: var(--cor-texto-suave);
+      margin-top: 0.35rem;
+      font-style: italic;
+    }
+
+    /* Grid com valores secundários (m/s e RPM) */
+    .metricas-secundarias {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--cor-borda);
+    }
+
+    .metrica-caixa {
+      background-color: #ffffff;
+      padding: 0.75rem 0.5rem;
+      border-radius: var(--raio-pequeno);
+      border: 1px solid #e5e7eb;
+      box-shadow: var(--sombra-sm);
+    }
+
+    .metrica-titulo {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cor-texto-suave);
+      text-transform: uppercase;
+    }
+
+    .metrica-valor {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cor-principal);
+      margin-top: 0.2rem;
+    }
+
+    /* =========================================================
+       HISTÓRICO DE MEDIÇÕES
+       ========================================================= */
+    .tabela-container {
+      overflow-x: auto;
+      margin-top: 0.75rem;
+      border-radius: var(--raio-pequeno);
+      border: 1px solid var(--cor-borda);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: center;
+      background-color: #ffffff;
+    }
+
+    th {
+      background-color: #f3f4f6;
+      color: var(--cor-principal);
+      font-weight: 700;
+      padding: 0.65rem 0.5rem;
+      border-bottom: 2px solid var(--cor-borda);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      color: var(--cor-texto);
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f9fafb;
+    }
+
+    .tabela-vazia {
+      padding: 1.5rem;
+      color: var(--cor-texto-suave);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .painel-estatisticas {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: var(--raio-pequeno);
+      padding: 0.75rem 1rem;
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 0.5rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--cor-principal);
+    }
+
+    /* =========================================================
+       SEÇÃO RECOLHÍVEL "COMO FUNCIONA"
+       ========================================================= */
+    details.como-funciona {
+      background: var(--cor-cartao);
+      border-radius: var(--raio-borda);
+      box-shadow: var(--sombra-md);
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    details.como-funciona summary {
+      padding: 1.1rem 1.25rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cor-principal);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      background-color: #ffffff;
+      border-bottom: 1px solid transparent;
+      transition: background-color 0.2s;
+    }
+
+    details.como-funciona summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.como-funciona[open] summary {
+      border-bottom-color: #e5e7eb;
+      background-color: #f8fafc;
+    }
+
+    .icone-seta {
+      transition: transform 0.3s;
+      font-size: 0.9rem;
+      color: var(--cor-secundaria);
+    }
+
+    details.como-funciona[open] .icone-seta {
+      transform: rotate(180deg);
+    }
+
+    .conteudo-explicacao {
+      padding: 1.25rem;
+      font-size: 0.95rem;
+      color: var(--cor-texto);
+      line-height: 1.6;
+      background-color: #ffffff;
+    }
+
+    .conteudo-explicacao h3 {
+      font-size: 1.05rem;
+      color: var(--cor-principal);
+      margin: 1rem 0 0.4rem 0;
+    }
+
+    .conteudo-explicacao h3:first-child {
+      margin-top: 0;
+    }
+
+    .formula-bloco {
+      background-color: #f1f5f9;
+      border-left: 4px solid var(--cor-secundaria);
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      border-radius: 0 var(--raio-pequeno) var(--raio-pequeno) 0;
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: var(--cor-principal);
+      overflow-x: auto;
+    }
+
+    .passos-lista {
+      margin-left: 1.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .passos-lista li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* =========================================================
+       RODAPÉ
+       ========================================================= */
+    .rodape {
+      margin-top: 2rem;
+      text-align: center;
+      padding: 1.25rem 1rem;
+      color: var(--cor-texto-suave);
+      font-size: 0.85rem;
+      border-top: 1px solid #e5e7eb;
+      background-color: #ffffff;
+    }
+
+    .rodape p {
+      margin: 0.2rem 0;
+    }
+
+    /* Responsividade em telas médias e grandes */
+    @media (min-width: 768px) {
+      .formulario-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+      }
+      .grupo-campo-completo {
+        grid-column: span 2;
+      }
+      .resultado-valor-kmh {
+        font-size: 4.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       CABEÇALHO DA PÁGINA
+       Identificação do Trabalho Escolar e Escola
+       ========================================================= -->
+  <header class="cabecalho">
+    <div class="cabecalho-container">
+      <!-- Se a imagem logo-faat.png não for encontrada na mesma pasta,
+           o evento onerror esconde a imagem para não quebrar o layout -->
+      <img
+        src="logo-faat.png"
+        alt="Logotipo Colégio FAAT"
+        class="logo-escola"
+        onerror="this.style.display='none'"
+      >
+      <div class="identificacao">
+        <h1>
+          <!-- Ícone SVG de vento decorativo -->
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+          </svg>
+          Anemômetro Caseiro – Medidor de Vento
+        </h1>
+        <p><strong>Aluna:</strong> Daniela Patrício Ribeiro &bull; <strong>Turma:</strong> 6º ano</p>
+        <p class="destaque-escola">Colégio FAAT – Atibaia, São Paulo</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       CONTEÚDO PRINCIPAL
+       ========================================================= -->
+  <main class="conteudo-principal">
+
+    <!-- CARTÃO: MEDIÇÃO E CRONÔMETRO -->
+    <section class="cartao" aria-labelledby="titulo-medicao">
+      <h2 id="titulo-medicao" class="cartao-titulo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Realizar Medição
+      </h2>
+
+      <!-- Informação visível e destacada da medição de 10 segundos -->
+      <div class="badge-tempo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Tempo padrão de medição: <strong>10 segundos</strong> (fixo)</span>
+      </div>
+
+      <!-- Bloco do Cronômetro de 10 segundos -->
+      <div id="container-cronometro" class="secao-cronometro">
+        <p class="cronometro-instrucao" id="texto-estado-cronometro">
+          Clique no botão abaixo para iniciar a contagem regressiva e conte as voltas dos copos!
+        </p>
+        <div class="cronometro-display" id="display-cronometro" aria-live="polite">10s</div>
+        <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
+          <button type="button" id="btn-cronometro" class="btn btn-cronometro">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span id="texto-btn-cronometro">Iniciar medição (10s)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulário com os campos de entrada -->
+      <form id="formulario-calculo" onsubmit="event.preventDefault();" class="formulario-grid">
+        
+        <!-- Campo: Número de voltas -->
+        <div class="grupo-campo">
+          <label for="campo-voltas" class="rotulo-campo">
+            <span>Número de voltas em 10 segundos:</span>
+          </label>
+          <input
+            type="number"
+            id="campo-voltas"
+            class="entrada-texto"
+            min="0"
+            step="1"
+            placeholder="Ex: 15"
+            inputmode="numeric"
+            autocomplete="off"
+            required
+          >
+          <span class="campo-ajuda">Digite a quantidade de voltas completas contadas nos 10s.</span>
+          <div id="erro-voltas" class="mensagem-erro" role="alert"></div>
+        </div>
+
+        <!-- Campo: Fator de calibração -->
+        <div class="grupo-campo">
+          <label for="campo-calibracao" class="rotulo-campo">
+            <span>Fator de calibração:</span>
+          </label>
+          <input
+            type="number"
+            id="campo-calibracao"
+            class="entrada-texto"
+            value="1.0"
+            min="0.1"
+            max="10.0"
+            step="0.05"
+            inputmode="decimal"
+            autocomplete="off"
+          >
+          <span class="campo-ajuda">
+            Padrão: <strong>1,0</strong>. Anemômetros caseiros costumam girar mais devagar que o vento real devido ao atrito; este fator permite corrigir isso comparando com dados meteorológicos de referência.
+          </span>
+          <div id="erro-calibracao" class="mensagem-erro" role="alert"></div>
+        </div>
+
+        <!-- Botões de Ação: Limpar campos e Salvar no histórico -->
+        <div class="grupo-campo-completo botoes-linha">
+          <button type="button" id="btn-limpar" class="btn btn-limpar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+            Limpar
+          </button>
+          <button type="button" id="btn-salvar-historico" class="btn btn-salvar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            Registrar no Histórico
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- CARTÃO: RESULTADO DO CÁLCULO EM TEMPO REAL -->
+    <section class="cartao" aria-labelledby="titulo-resultado">
+      <h2 id="titulo-resultado" class="cartao-titulo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+        Resultado da Velocidade
+      </h2>
+
+      <div class="resultado-painel">
+        <div class="rotulo">Velocidade Estimada do Vento</div>
+        
+        <!-- Destaque principal: km/h com 2 casas decimais e separador em vírgula -->
+        <div class="resultado-principal">
+          <span id="resultado-kmh" class="resultado-valor-kmh">0,00</span>
+          <span class="resultado-unidade-kmh">km/h</span>
+        </div>
+
+        <!-- Classificação na Escala de Beaufort -->
+        <div>
+          <span id="resultado-beaufort" class="faixa-beaufort">Calmo</span>
+          <div id="resultado-beaufort-desc" class="beaufort-descricao">A fumaça sobe verticalmente. O ar parece parado.</div>
+        </div>
+
+        <!-- Métricas secundárias: m/s e RPM -->
+        <div class="metricas-secundarias">
+          <div class="metrica-caixa">
+            <div class="metrica-titulo">Velocidade em m/s</div>
+            <div id="resultado-ms" class="metrica-valor">0,00 m/s</div>
+          </div>
+          <div class="metrica-caixa">
+            <div class="metrica-titulo">Rotações por Minuto</div>
+            <div id="resultado-rpm" class="metrica-valor">0 RPM</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARTÃO: HISTÓRICO DAS MEDIÇÕES NA SESSÃO -->
+    <section class="cartao" aria-labelledby="titulo-historico">
+      <h2 id="titulo-historico" class="cartao-titulo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Histórico das Medições
+      </h2>
+
+      <p style="font-size: 0.88rem; color: var(--cor-texto-suave);">
+        Guarde as medições realizadas durante os testes para analisar a média do vento.
+      </p>
+
+      <div class="tabela-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Horário</th>
+              <th>Voltas (10s)</th>
+              <th>km/h</th>
+              <th>m/s</th>
+              <th>Classificação</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-tabela-historico">
+            <tr>
+              <td colspan="6" class="tabela-vazia">Nenhuma medição registrada ainda nesta sessão.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Resumo estatístico das medições gravadas -->
+      <div id="painel-estatisticas" class="painel-estatisticas" style="display: none;">
+        <div>Total de testes: <span id="stat-total">0</span></div>
+        <div>Média de voltas: <span id="stat-media-voltas">0,0</span></div>
+        <div>Média da velocidade: <span id="stat-media-kmh">0,00 km/h</span></div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 0.75rem;">
+        <button type="button" id="btn-limpar-historico" class="btn btn-limpar" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; min-height: 36px; display: none;">
+          Limpar Histórico
+        </button>
+      </div>
+    </section>
+
+    <!-- SEÇÃO RECOLHÍVEL: COMO FUNCIONA (EXPLICAÇÃO CIENTÍFICA) -->
+    <details class="como-funciona">
+      <summary>
+        <span>
+          <strong>Como funciona o cálculo?</strong> (Explicação de Ciências)
+        </span>
+        <span class="icone-seta" aria-hidden="true">&#9660;</span>
+      </summary>
+      <div class="conteudo-explicacao">
+        <h3>1. Estrutura do Anemômetro</h3>
+        <p>
+          O anemômetro é construído com copos descartáveis presos a hastes que giram em torno de um eixo central.
+          A distância do centro do eixo até o meio do copinho (raio $R$) mede <strong>7,5 cm</strong> (ou <strong>0,075 metros</strong>).
+        </p>
+
+        <h3>2. Distância Percorrida em Cada Volta</h3>
+        <p>
+          Quando os copos dão uma volta completa, eles percorrem a circunferência de um círculo:
+        </p>
+        <div class="formula-bloco">
+          Circunferência = 2 &times; &pi; &times; Raio<br>
+          Circunferência = 2 &times; 3,1416 &times; 0,075 m &approx; <strong>0,4712 metros por volta</strong>
+        </div>
+
+        <h3>3. Cálculo da Velocidade em Metros por Segundo (m/s)</h3>
+        <p>
+          Como contamos as voltas durante um tempo fixo de <strong>10 segundos</strong>:
+        </p>
+        <div class="formula-bloco">
+          Distância Total (m) = Número de Voltas &times; 0,4712 m<br>
+          Velocidade (m/s) = (Distância Total &divide; 10 s) &times; Fator de Calibração
+        </div>
+
+        <h3>4. Conversão para Quilômetros por Hora (km/h)</h3>
+        <p>
+          Para transformar metros por segundo em quilômetros por hora, multiplicamos por 3,6:
+        </p>
+        <div class="formula-bloco">
+          Velocidade (km/h) = Velocidade (m/s) &times; 3,6
+        </div>
+
+        <h3>5. O que são as Rotações por Minuto (RPM)?</h3>
+        <p>
+          Como um minuto tem 60 segundos (que equivale a 6 intervalos de 10 segundos):
+        </p>
+        <div class="formula-bloco">
+          RPM = Voltas em 10 segundos &times; 6
+        </div>
+
+        <h3>6. O Fator de Calibração</h3>
+        <p>
+          Os anemômetros caseiros sofrem atrito do ar e do eixo de rotação, girando um pouco mais devagar que o vento natural. O fator de calibração permite ajustar os valores comparando com outro aparelho ou previsão do tempo local.
+        </p>
+      </div>
+    </details>
+
+  </main>
+
+  <!-- =========================================================
+       RODAPÉ COM IDENTIFICAÇÃO DISCRETA
+       ========================================================= -->
+  <footer class="rodape">
+    <p>Projeto de Ciências – Daniela Patrício Ribeiro – 6º ano – Colégio FAAT – Atibaia/SP</p>
+    <p style="font-size: 0.78rem; color: #9ca3af; margin-top: 0.25rem;">
+      Desenvolvido com HTML, CSS e JavaScript puros &bull; Feito para fins didáticos
+    </p>
+  </footer>
+
+  <!-- =========================================================
+       CÓDIGO JAVASCRIPT
+       Lógica de cálculo, validação, cronômetro com áudio e histórico.
+       ========================================================= -->
+  <script>
+    /* =========================================================
+       CONSTANTES FÍSICAS DO APARELHO
+       ========================================================= */
+    // Raio medido do eixo central até o meio do copo em metros: 7,5 cm = 0,075 m
+    const RAIO_METROS = 0.075;
+    // Circunferência percorrida a cada volta completa: 2 * pi * r ≈ 0,471239 m
+    const CIRCUNFERENCIA_METROS = 2 * Math.PI * RAIO_METROS;
+    // Tempo fixo de cada medição em segundos
+    const TEMPO_MEDICAO_SEGUNDOS = 10;
+
+    /* =========================================================
+       TABELA DA ESCALA DE BEAUFORT (Classificação do Vento)
+       Baseada na velocidade do vento em km/h
+       ========================================================= */
+    const ESCALA_BEAUFORT = [
+      { limiteMax: 1.0, nome: "Calmo", descricao: "A fumaça sobe na vertical; o ar parece parado." },
+      { limiteMax: 5.5, nome: "Bafagem / Aragem", descricao: "O vento desloca a fumaça; quase imperceptível na pele." },
+      { limiteMax: 11.9, nome: "Brisa leve", descricao: "Folhas das árvores sussurram; o vento é sentido no rosto." },
+      { limiteMax: 19.7, nome: "Brisa fraca", descricao: "Folhas e ramos finos estão em movimento constante." },
+      { limiteMax: 28.7, nome: "Brisa moderada", descricao: "Poeira e folhas soltas se levantam do chão." },
+      { limiteMax: 38.8, nome: "Brisa fresca", descricao: "Pequenas árvores balançam ligeiramente." },
+      { limiteMax: 49.9, nome: "Vento muito fresco", descricao: "Grandes galhos se movimentam; difícil usar sombrinha." },
+      { limiteMax: 61.8, nome: "Vento forte", descricao: "Árvores inteiras balançam; esforço ao caminhar contra o vento." },
+      { limiteMax: 74.6, nome: "Ventania", descricao: "Quebram-se galhos pequenos das árvores." },
+      { limiteMax: 88.1, nome: "Ventania forte", descricao: "Danos em construções e telhas soltas." },
+      { limiteMax: 102.4, nome: "Tempestade", descricao: "Árvores são arrancadas; danos estruturais consideráveis." },
+      { limiteMax: 117.4, nome: "Tempestade violenta", descricao: "Devastação ampla, muito raro no continente." },
+      { limiteMax: Infinity, nome: "Furacão", descricao: "Destruição catastrófica generalizada." }
+    ];
+
+    /* =========================================================
+       ELEMENTOS DO DOM
+       ========================================================= */
+    const campoVoltas = document.getElementById("campo-voltas");
+    const campoCalibracao = document.getElementById("campo-calibracao");
+    const erroVoltas = document.getElementById("erro-voltas");
+    const erroCalibracao = document.getElementById("erro-calibracao");
+
+    const resultadoKmh = document.getElementById("resultado-kmh");
+    const resultadoMs = document.getElementById("resultado-ms");
+    const resultadoRpm = document.getElementById("resultado-rpm");
+    const resultadoBeaufort = document.getElementById("resultado-beaufort");
+    const resultadoBeaufortDesc = document.getElementById("resultado-beaufort-desc");
+
+    const btnLimpar = document.getElementById("btn-limpar");
+    const btnSalvarHistorico = document.getElementById("btn-salvar-historico");
+    const btnLimparHistorico = document.getElementById("btn-limpar-historico");
+
+    const displayCronometro = document.getElementById("display-cronometro");
+    const btnCronometro = document.getElementById("btn-cronometro");
+    const textoBtnCronometro = document.getElementById("texto-btn-cronometro");
+    const containerCronometro = document.getElementById("container-cronometro");
+    const textoEstadoCronometro = document.getElementById("texto-estado-cronometro");
+
+    const corpoTabelaHistorico = document.getElementById("corpo-tabela-historico");
+    const painelEstatisticas = document.getElementById("painel-estatisticas");
+    const statTotal = document.getElementById("stat-total");
+    const statMediaVoltas = document.getElementById("stat-media-voltas");
+    const statMediaKmh = document.getElementById("stat-media-kmh");
+
+    // Histórico de medições na memória da sessão
+    const historicoMedicoes = [];
+
+    // Controle de intervalo do cronômetro
+    let temporizadorCronometro = null;
+    let segundosRestantes = TEMPO_MEDICAO_SEGUNDOS;
+
+    /* =========================================================
+       FUNÇÃO DE FORMATAÇÃO COM PADRÃO BRASILEIRO (VÍRGULA)
+       ========================================================= */
+    function formatarNumeroBR(valor, casasDecimais = 2) {
+      if (isNaN(valor) || valor === null) return "0," + "0".repeat(casasDecimais);
+      return valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: casasDecimais,
+        maximumFractionDigits: casasDecimais
+      });
+    }
+
+    /* =========================================================
+       FUNÇÃO PARA OBTER CLASSIFICAÇÃO NA ESCALA DE BEAUFORT
+       ========================================================= */
+    function classificarBeaufort(velocidadeKmh) {
+      for (const nivel of ESCALA_BEAUFORT) {
+        if (velocidadeKmh <= nivel.limiteMax) {
+          return nivel;
+        }
+      }
+      return ESCALA_BEAUFORT[ESCALA_BEAUFORT.length - 1];
+    }
+
+    /* =========================================================
+       CÁLCULO PRINCIPAL DA VELOCIDADE
+       Executado em tempo real conforme o usuário digita
+       ========================================================= */
+    function calcularVelocidade() {
+      // Limpeza prévia de mensagens de erro
+      erroVoltas.textContent = "";
+      erroCalibracao.textContent = "";
+
+      const valorVoltasTexto = campoVoltas.value.trim();
+      const valorCalibracaoTexto = campoCalibracao.value.trim();
+
+      // Validação do campo de voltas
+      if (valorVoltasTexto === "") {
+        // Campo vazio: zera o resultado de forma limpa sem erro
+        atualizarExibicaoResultado(0, 0, 0);
+        return { valido: false, voltas: 0, ms: 0, kmh: 0, rpm: 0 };
+      }
+
+      const voltas = Number(valorVoltasTexto);
+      if (isNaN(voltas) || voltas < 0 || !Number.isInteger(voltas)) {
+        erroVoltas.textContent = "Digite um número inteiro válido maior ou igual a 0.";
+        atualizarExibicaoResultado(0, 0, 0);
+        return { valido: false };
+      }
+
+      // Validação do fator de calibração
+      let fator = 1.0;
+      if (valorCalibracaoTexto !== "") {
+        fator = Number(valorCalibracaoTexto);
+        if (isNaN(fator) || fator <= 0) {
+          erroCalibracao.textContent = "O fator de calibração deve ser um número maior que zero.";
+          atualizarExibicaoResultado(0, 0, 0);
+          return { valido: false };
+        }
+      }
+
+      /* 
+         FÓRMULAS FÍSICAS:
+         - velocidade_ms = (voltas * 2 * pi * 0,075 / 10) * fator_calibracao
+         - velocidade_kmh = velocidade_ms * 3,6
+         - rpm = voltas * 6
+      */
+      const velocidadeMs = ((voltas * CIRCUNFERENCIA_METROS) / TEMPO_MEDICAO_SEGUNDOS) * fator;
+      const velocidadeKmh = velocidadeMs * 3.6;
+      const rpm = voltas * 6;
+
+      atualizarExibicaoResultado(velocidadeKmh, velocidadeMs, rpm);
+
+      return {
+        valido: true,
+        voltas: voltas,
+        fator: fator,
+        ms: velocidadeMs,
+        kmh: velocidadeKmh,
+        rpm: rpm
+      };
+    }
+
+    /* Atualiza os elementos visuais do painel de resultado */
+    function atualizarExibicaoResultado(kmh, ms, rpm) {
+      resultadoKmh.textContent = formatarNumeroBR(kmh, 2);
+      resultadoMs.textContent = `${formatarNumeroBR(ms, 2)} m/s`;
+      resultadoRpm.textContent = `${formatarNumeroBR(rpm, 0)} RPM`;
+
+      const beaufort = classificarBeaufort(kmh);
+      resultadoBeaufort.textContent = beaufort.nome;
+      resultadoBeaufortDesc.textContent = beaufort.descricao;
+    }
+
+    /* =========================================================
+       CRONÔMETRO DE 10 SEGUNDOS COM ALERTA SONORO E VISUAL
+       ========================================================= */
+
+    /* Emite um bipe sonoro sintetizado usando Web Audio API nativa */
+    function emitirAvisoSonoro(tipo = "fim") {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        if (tipo === "tick") {
+          // Bipe suave durante a contagem
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(600, ctx.currentTime);
+          gain.gain.setValueAtTime(0.05, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.08);
+        } else if (tipo === "fim") {
+          // Sinal sonoro marcante no final (sequência de 3 tons ascendentes)
+          const tons = [523.25, 659.25, 783.99]; // Notas Dó, Mi, Sol
+          tons.forEach((frequencia, indice) => {
+            const inicio = ctx.currentTime + (indice * 0.12);
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(frequencia, inicio);
+            gain.gain.setValueAtTime(0.2, inicio);
+            gain.gain.exponentialRampToValueAtTime(0.001, inicio + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(inicio);
+            osc.stop(inicio + 0.25);
+          });
+        }
+      } catch (e) {
+        // Navegador pode bloquear áudio antes de interação ou não suportar Web Audio
+        console.log("Áudio não disponível ou bloqueado:", e);
+      }
+    }
+
+    function iniciarCronometro() {
+      if (temporizadorCronometro !== null) return; // Já está rodando
+
+      segundosRestantes = TEMPO_MEDICAO_SEGUNDOS;
+      btnCronometro.disabled = true;
+      containerCronometro.classList.remove("finalizado");
+      containerCronometro.classList.add("ativo");
+      textoEstadoCronometro.textContent = "Contando... Observe o copo marcado e conte as voltas!";
+      displayCronometro.textContent = `${segundosRestantes}s`;
+
+      emitirAvisoSonoro("tick");
+
+      temporizadorCronometro = setInterval(() => {
+        segundosRestantes--;
+
+        if (segundosRestantes > 0) {
+          displayCronometro.textContent = `${segundosRestantes}s`;
+          emitirAvisoSonoro("tick");
+        } else {
+          // Finalizou os 10 segundos
+          clearInterval(temporizadorCronometro);
+          temporizadorCronometro = null;
+
+          displayCronometro.textContent = "0s - Pare!";
+          containerCronometro.classList.remove("ativo");
+          containerCronometro.classList.add("finalizado");
+          textoEstadoCronometro.textContent = "Tempo esgotado! Digite abaixo o número de voltas que você contou.";
+          textoBtnCronometro.textContent = "Medir novamente (10s)";
+          btnCronometro.disabled = false;
+
+          // Emite aviso sonoro e visual
+          emitirAvisoSonoro("fim");
+
+          // Coloca o cursor automaticamente no campo de voltas
+          campoVoltas.focus();
+          campoVoltas.select();
+        }
+      }, 1000);
+    }
+
+    /* =========================================================
+       BOTÃO LIMPAR
+       ========================================================= */
+    function limparCampos() {
+      campoVoltas.value = "";
+      campoCalibracao.value = "1.0";
+      erroVoltas.textContent = "";
+      erroCalibracao.textContent = "";
+      atualizarExibicaoResultado(0, 0, 0);
+
+      // Reseta estado do cronômetro
+      if (temporizadorCronometro !== null) {
+        clearInterval(temporizadorCronometro);
+        temporizadorCronometro = null;
+      }
+      segundosRestantes = TEMPO_MEDICAO_SEGUNDOS;
+      btnCronometro.disabled = false;
+      displayCronometro.textContent = "10s";
+      containerCronometro.classList.remove("ativo", "finalizado");
+      textoEstadoCronometro.textContent = "Clique no botão abaixo para iniciar a contagem regressiva e conte as voltas dos copos!";
+      textoBtnCronometro.textContent = "Iniciar medição (10s)";
+
+      campoVoltas.focus();
+    }
+
+    /* =========================================================
+       HISTÓRICO DE MEDIÇÕES DA SESSÃO
+       ========================================================= */
+    function salvarMedicaoNoHistorico() {
+      const calculo = calcularVelocidade();
+
+      if (!calculo.valido || campoVoltas.value.trim() === "") {
+        erroVoltas.textContent = "Preencha o número de voltas antes de registrar.";
+        campoVoltas.focus();
+        return;
+      }
+
+      const agora = new Date();
+      const horarioFormatado = agora.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      const registro = {
+        indice: historicoMedicoes.length + 1,
+        horario: horarioFormatado,
+        voltas: calculo.voltas,
+        kmh: calculo.kmh,
+        ms: calculo.ms,
+        classificacao: classificarBeaufort(calculo.kmh).nome
+      };
+
+      historicoMedicoes.push(registro);
+      renderizarHistorico();
+    }
+
+    function renderizarHistorico() {
+      if (historicoMedicoes.length === 0) {
+        corpoTabelaHistorico.innerHTML = `
+          <tr>
+            <td colspan="6" class="tabela-vazia">Nenhuma medição registrada ainda nesta sessão.</td>
+          </tr>
+        `;
+        painelEstatisticas.style.display = "none";
+        btnLimparHistorico.style.display = "none";
+        return;
+      }
+
+      let linhasHtml = "";
+      let somaVoltas = 0;
+      let somaKmh = 0;
+
+      historicoMedicoes.forEach((item) => {
+        somaVoltas += item.voltas;
+        somaKmh += item.kmh;
+
+        linhasHtml += `
+          <tr>
+            <td><strong>#${item.indice}</strong></td>
+            <td>${item.horario}</td>
+            <td>${item.voltas}</td>
+            <td><strong>${formatarNumeroBR(item.kmh, 2)}</strong></td>
+            <td>${formatarNumeroBR(item.ms, 2)}</td>
+            <td>${item.classificacao}</td>
+          </tr>
+        `;
+      });
+
+      corpoTabelaHistorico.innerHTML = linhasHtml;
+
+      // Atualiza médias estatísticas
+      const total = historicoMedicoes.length;
+      const mediaVoltas = somaVoltas / total;
+      const mediaKmh = somaKmh / total;
+
+      statTotal.textContent = total;
+      statMediaVoltas.textContent = formatarNumeroBR(mediaVoltas, 1);
+      statMediaKmh.textContent = `${formatarNumeroBR(mediaKmh, 2)} km/h`;
+
+      painelEstatisticas.style.display = "flex";
+      btnLimparHistorico.style.display = "inline-flex";
+    }
+
+    function limparHistorico() {
+      if (confirm("Deseja realmente limpar o histórico de medições desta sessão?")) {
+        historicoMedicoes.length = 0;
+        renderizarHistorico();
+      }
+    }
+
+    /* =========================================================
+       EVENTOS E INICIALIZAÇÃO
+       ========================================================= */
+    // Atualização em tempo real conforme digitação
+    campoVoltas.addEventListener("input", calcularVelocidade);
+    campoCalibracao.addEventListener("input", calcularVelocidade);
+
+    // Botões
+    btnLimpar.addEventListener("click", limparCampos);
+    btnCronometro.addEventListener("click", iniciarCronometro);
+    btnSalvarHistorico.addEventListener("click", salvarMedicaoNoHistorico);
+    btnLimparHistorico.addEventListener("click", limparHistorico);
+
+    // Inicialização da tela ao carregar
+    window.addEventListener("DOMContentLoaded", () => {
+      calcularVelocidade();
+    });
+  </script>
+</body>
+</html>
