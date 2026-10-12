@@ -54,6 +54,47 @@
     }
 
     /* =========================================================
+       BARRA DE NAVEGAÇÃO SUPERIOR
+       Permite alternar entre a calculadora e os resultados
+       ========================================================= */
+    .barra-navegacao {
+      background-color: #082647;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navegacao-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .link-navegacao {
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--raio-pequeno);
+      transition: background-color 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .link-navegacao:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .link-navegacao.ativo {
+      color: #ffffff;
+      background-color: var(--cor-secundaria);
+      font-weight: 600;
+    }
+
+    /* =========================================================
        CABEÇALHO COM IDENTIFICAÇÃO DO PROJETO E ESCOLA
        Mobile-first: logo centralizado acima do texto em telas pequenas.
        ========================================================= */
@@ -614,6 +655,20 @@
   </style>
 </head>
 <body>
+
+  <!-- Barra de navegação para alternar entre as páginas do projeto -->
+  <nav class="barra-navegacao" aria-label="Navegação do Projeto">
+    <div class="navegacao-container">
+      <a href="resultados.html" class="link-navegacao">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+        Resultados das Medições
+      </a>
+      <a href="index.html" class="link-navegacao ativo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Calculadora do Anemômetro
+      </a>
+    </div>
+  </nav>
 
   <!-- =========================================================
        CABEÇALHO DA PÁGINA

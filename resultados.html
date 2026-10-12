@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados – Estação Meteorológica Caseira Inteligente | Colégio FAAT</title>
+
+  <!-- Biblioteca Chart.js carregada via CDN para renderização dos gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* =========================================================
+       VARIÁVEIS CSS (IDENTIDADE VISUAL DO COLÉGIO FAAT)
+       Cores institucionais facilmente editáveis.
+       ========================================================= */
+    :root {
+      /* Cor Principal: Azul institucional da FAAT */
+      --cor-principal: #0b3c6d;
+      --cor-principal-suave: rgba(11, 60, 109, 0.12);
+      --cor-principal-hover: #082d52;
+
+      /* Cor Secundária: Laranja institucional da FAAT */
+      --cor-secundaria: #f28500;
+      --cor-secundaria-suave: rgba(242, 133, 0, 0.15);
+      --cor-secundaria-hover: #d97700;
+
+      /* Cores de apoio e neutras */
+      --cor-fundo: #f4f7fa;
+      --cor-cartao: #ffffff;
+      --cor-texto: #1f2937;
+      --cor-texto-suave: #4b5563;
+      --cor-borda: #e5e7eb;
+
+      /* Sombras e raios */
+      --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --raio-borda: 14px;
+      --raio-pequeno: 8px;
+    }
+
+    /* Reset básico e tipografia */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--cor-fundo);
+      color: var(--cor-texto);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================
+       BARRA DE NAVEGAÇÃO SUPERIOR
+       Permite alternar entre os resultados e a calculadora de vento
+       ========================================================= */
+    .barra-navegacao {
+      background-color: #082647;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navegacao-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .link-navegacao {
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--raio-pequeno);
+      transition: background-color 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .link-navegacao:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .link-navegacao.ativo {
+      color: #ffffff;
+      background-color: var(--cor-secundaria);
+      font-weight: 600;
+    }
+
+    /* =========================================================
+       CABEÇALHO COM IDENTIFICAÇÃO DO TRABALHO
+       Mobile-first: logo centralizado em telas pequenas e à esquerda em desktop
+       ========================================================= */
+    .cabecalho {
+      background: linear-gradient(135deg, var(--cor-principal) 0%, #102a43 100%);
+      color: #ffffff;
+      padding: 1.5rem 1rem;
+      box-shadow: var(--sombra-md);
+      border-bottom: 4px solid var(--cor-secundaria);
+    }
+
+    .cabecalho-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.25rem;
+    }
+
+    .logo-escola {
+      max-height: 80px;
+      max-width: 220px;
+      object-fit: contain;
+      background-color: #ffffff;
+      padding: 6px 12px;
+      border-radius: var(--raio-pequeno);
+      box-shadow: var(--sombra-sm);
+    }
+
+    .identificacao {
+      flex: 1;
+    }
+
+    .badge-projeto {
+      display: inline-block;
+      background-color: var(--cor-secundaria);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      margin-bottom: 0.4rem;
+    }
+
+    .identificacao h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+      line-height: 1.25;
+    }
+
+    .identificacao p {
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      margin-bottom: 0.25rem;
+    }
+
+    .detalhes-apresentacao {
+      font-size: 0.85rem;
+      color: #fed7aa;
+      font-weight: 600;
+      margin-top: 0.35rem;
+    }
+
+    /* Tablet e Computador: logotipo à esquerda e texto alinhado */
+    @media (min-width: 680px) {
+      .cabecalho-container {
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+      }
+      .identificacao h1 {
+        font-size: 1.7rem;
+      }
+    }
+
+    /* =========================================================
+       CONTAINER PRINCIPAL
+       ========================================================= */
+    .conteudo-principal {
+      max-width: 1100px;
+      width: 100%;
+      margin: 1.75rem auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      flex: 1;
+    }
+
+    .secao-titulo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--cor-principal);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--cor-borda);
+      padding-bottom: 0.5rem;
+    }
+
+    /* =========================================================
+       SEÇÃO 1: RESUMO EM CARTÕES (CARDS)
+       Mobile: 1 coluna | Tablet: 2 colunas | Computador: 3 colunas
+       ========================================================= */
+    .grade-resumo {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 580px) {
+      .grade-resumo {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 860px) {
+      .grade-resumo {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .card-resumo {
+      background-color: var(--cor-cartao);
+      border-radius: var(--raio-borda);
+      padding: 1.25rem;
+      box-shadow: var(--sombra-md);
+      border: 1px solid var(--cor-borda);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-top: 4px solid var(--cor-principal);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card-resumo:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Destaque laranja no topo para cartões alternados */
+    .card-resumo.destaque-secundario {
+      border-top-color: var(--cor-secundaria);
+    }
+
+    .card-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-rotulo {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--cor-texto-suave);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .card-icone {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: var(--cor-principal-suave);
+      color: var(--cor-principal);
+    }
+
+    .card-resumo.destaque-secundario .card-icone {
+      background-color: var(--cor-secundaria-suave);
+      color: var(--cor-secundaria);
+    }
+
+    .card-valor-principal {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--cor-principal);
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-resumo.destaque-secundario .card-valor-principal {
+      color: var(--cor-secundaria);
+    }
+
+    .card-detalhes {
+      font-size: 0.85rem;
+      color: var(--cor-texto-suave);
+      border-top: 1px solid #f1f5f9;
+      padding-top: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    /* =========================================================
+       SEÇÃO 2: GRÁFICOS (CHART.JS)
+       Mobile: 1 coluna | Tablet e Computador: 2 colunas
+       ========================================================= */
+    .grade-graficos {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 580px) {
+      .grade-graficos {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grafico-card-destaque {
+        grid-column: span 2;
+      }
+    }
+
+    .card-grafico {
+      background-color: var(--cor-cartao);
+      border-radius: var(--raio-borda);
+      padding: 1.25rem;
+      box-shadow: var(--sombra-md);
+      border: 1px solid var(--cor-borda);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .grafico-cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .grafico-titulo {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--cor-principal);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .grafico-unidade {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--cor-secundaria);
+      background-color: var(--cor-secundaria-suave);
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+    }
+
+    /* Container com altura definida para Chart.js redimensionar perfeitamente */
+    .grafico-container {
+      position: relative;
+      height: 280px;
+      width: 100%;
+    }
+
+    /* =========================================================
+       SEÇÃO 3: TABELA COMPLETA COM ROLAGEM HORIZONTAL INTERNA
+       ========================================================= */
+    .card-tabela {
+      background-color: var(--cor-cartao);
+      border-radius: var(--raio-borda);
+      padding: 1.25rem;
+      box-shadow: var(--sombra-md);
+      border: 1px solid var(--cor-borda);
+    }
+
+    .tabela-info-topo {
+      font-size: 0.88rem;
+      color: var(--cor-texto-suave);
+      margin-bottom: 0.75rem;
+    }
+
+    .tabela-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--raio-pequeno);
+      border: 1px solid var(--cor-borda);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 0.92rem;
+      background-color: #ffffff;
+      min-width: 620px; /* Garante espaço para todas as colunas sem amassar */
+    }
+
+    thead th {
+      background-color: #f8fafc;
+      color: var(--cor-principal);
+      font-weight: 700;
+      padding: 0.75rem 0.6rem;
+      border-bottom: 2px solid var(--cor-borda);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 0.7rem 0.6rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--cor-texto);
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #fbfcfe;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    .badge-direcao {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      background-color: var(--cor-principal);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.8rem;
+      border-radius: 9999px;
+    }
+
+    /* =========================================================
+       MENSAGEM DE LISTA VAZIA
+       ========================================================= */
+    .alerta-vazio {
+      background-color: #ffffff;
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--raio-borda);
+      padding: 3rem 1.5rem;
+      text-align: center;
+      color: var(--cor-texto-suave);
+      margin: 1.5rem 0;
+    }
+
+    .alerta-vazio h3 {
+      font-size: 1.25rem;
+      color: var(--cor-principal);
+      margin-bottom: 0.5rem;
+    }
+
+    /* =========================================================
+       RODAPÉ
+       ========================================================= */
+    .rodape {
+      margin-top: 3rem;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      color: var(--cor-texto-suave);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--cor-borda);
+      background-color: #ffffff;
+    }
+
+    .rodape p {
+      margin: 0.2rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de navegação para alternar entre as páginas do projeto -->
+  <nav class="barra-navegacao" aria-label="Navegação do Projeto">
+    <div class="navegacao-container">
+      <a href="resultados.html" class="link-navegacao ativo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+        Resultados das Medições
+      </a>
+      <a href="index.html" class="link-navegacao">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Calculadora do Anemômetro
+      </a>
+    </div>
+  </nav>
+
+  <!-- =========================================================
+       CABEÇALHO DA PÁGINA (IDENTIFICAÇÃO ESCOLAR)
+       ========================================================= */ -->
+  <header class="cabecalho">
+    <div class="cabecalho-container">
+      <!-- Logotipo da escola (se não carregar, esconde sem quebrar o layout) -->
+      <img
+        src="logo-faat.png"
+        alt="Logotipo Colégio FAAT"
+        class="logo-escola"
+        onerror="this.style.display='none'"
+      >
+      <div class="identificacao">
+        <span class="badge-projeto">Feira de Ciências &bull; Colégio FAAT</span>
+        <h1>Estação Meteorológica Caseira Inteligente</h1>
+        <p><strong>Aluna:</strong> Daniela Patrício Ribeiro &bull; <strong>Turma:</strong> 6º Ano C</p>
+        <p><strong>Orientador:</strong> Prof. Marcelo de Castro &bull; <strong>Escola:</strong> Colégio FAAT – Atibaia, São Paulo</p>
+        <p class="detalhes-apresentacao">
+          Período das medições: 11 a 30 de setembro de 2026 &bull; Apresentação: Open Campus – 17 de outubro de 2026
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       CONTEÚDO PRINCIPAL (EXIBIÇÃO DE RESULTADOS)
+       ========================================================= -->
+  <main class="conteudo-principal">
+
+    <!-- Mensagem exibida caso o arquivo dados.js esteja sem medições -->
+    <div id="secao-vazia" class="alerta-vazio" style="display: none;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--cor-secundaria); margin-bottom: 0.75rem;">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <h3>Nenhuma medição registrada ainda.</h3>
+      <p>Abra o arquivo <strong>dados.js</strong> para adicionar as anotações coletadas na sua estação meteorológica.</p>
+    </div>
+
+    <!-- Container com as seções preenchidas automaticamente quando há medições -->
+    <div id="secao-resultados">
+
+      <!-- SEÇÃO 1: RESUMO EM CARTÕES (CARDS) -->
+      <section aria-labelledby="titulo-resumo">
+        <h2 id="titulo-resumo" class="secao-titulo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Resumo Geral das Medições
+        </h2>
+
+        <div class="grade-resumo">
+          
+          <!-- Card 1: Temperatura -->
+          <article class="card-resumo">
+            <div class="card-topo">
+              <span class="card-rotulo">Temperatura</span>
+              <div class="card-icone" title="Temperatura">
+                <!-- Ícone SVG de Termômetro -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-valor-principal" id="card-temp-media">--</div>
+              <div class="card-detalhes">
+                Máxima: <strong id="card-temp-max">--</strong> &bull; Mínima: <strong id="card-temp-min">--</strong>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2: Umidade do Ar -->
+          <article class="card-resumo destaque-secundario">
+            <div class="card-topo">
+              <span class="card-rotulo">Umidade do Ar</span>
+              <div class="card-icone" title="Umidade">
+                <!-- Ícone SVG de Gota -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-valor-principal" id="card-umidade-media">--</div>
+              <div class="card-detalhes">
+                Umidade relativa média no período
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 3: Chuva Total e Dia Mais Chuvoso -->
+          <article class="card-resumo">
+            <div class="card-topo">
+              <span class="card-rotulo">Precipitação (Chuva)</span>
+              <div class="card-icone" title="Chuva">
+                <!-- Ícone SVG de Nuvem com Chuva -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="16" y1="13" x2="16" y2="21"></line>
+                  <line x1="8" y1="13" x2="8" y2="21"></line>
+                  <line x1="12" y1="15" x2="12" y2="23"></line>
+                  <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-valor-principal" id="card-chuva-total">--</div>
+              <div class="card-detalhes">
+                Dia mais chuvoso: <strong id="card-chuva-max-dia">--</strong>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 4: Velocidade do Vento -->
+          <article class="card-resumo destaque-secundario">
+            <div class="card-topo">
+              <span class="card-rotulo">Velocidade do Vento</span>
+              <div class="card-icone" title="Vento">
+                <!-- Ícone SVG de Vento -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-valor-principal" id="card-vento-medio">--</div>
+              <div class="card-detalhes">
+                Velocidade máxima: <strong id="card-vento-max">--</strong>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 5: Direção Predominante -->
+          <article class="card-resumo">
+            <div class="card-topo">
+              <span class="card-rotulo">Direção Predominante</span>
+              <div class="card-icone" title="Bússola / Direção">
+                <!-- Ícone SVG de Bússola -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-valor-principal" id="card-direcao-predominante">--</div>
+              <div class="card-detalhes" id="card-direcao-detalhes">
+                Direção mais frequente indicada pela bússola
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 6: Total de Medições -->
+          <article class="card-resumo destaque-secundario">
+            <div class="card-topo">
+              <span class="card-rotulo">Total de Medições</span>
+              <div class="card-icone" title="Total">
+                <!-- Ícone SVG de Lista/Contador -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-valor-principal" id="card-total-medicoes">--</div>
+              <div class="card-detalhes">
+                Registradas entre 11/09 e 30/09/2026
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- SEÇÃO 2: GRÁFICOS DINÂMICOS COM CHART.JS -->
+      <section aria-labelledby="titulo-graficos">
+        <h2 id="titulo-graficos" class="secao-titulo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Análise Gráfica
+        </h2>
+
+        <div class="grade-graficos">
+
+          <!-- Gráfico 1: Temperatura ao longo dos dias -->
+          <article class="card-grafico">
+            <div class="grafico-cabecalho">
+              <h3 class="grafico-titulo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+                Temperatura ao Longo dos Dias
+              </h3>
+              <span class="grafico-unidade">°C</span>
+            </div>
+            <div class="grafico-container">
+              <canvas id="grafico-temperatura"></canvas>
+            </div>
+          </article>
+
+          <!-- Gráfico 2: Umidade do ar ao longo dos dias -->
+          <article class="card-grafico">
+            <div class="grafico-cabecalho">
+              <h3 class="grafico-titulo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                Umidade do Ar ao Longo dos Dias
+              </h3>
+              <span class="grafico-unidade">%</span>
+            </div>
+            <div class="grafico-container">
+              <canvas id="grafico-umidade"></canvas>
+            </div>
+          </article>
+
+          <!-- Gráfico 3: Chuva acumulada por dia -->
+          <article class="card-grafico">
+            <div class="grafico-cabecalho">
+              <h3 class="grafico-titulo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><line x1="16" y1="13" x2="16" y2="21"></line></svg>
+                Chuva por Dia (Pluviômetro)
+              </h3>
+              <span class="grafico-unidade">mm</span>
+            </div>
+            <div class="grafico-container">
+              <canvas id="grafico-chuva"></canvas>
+            </div>
+          </article>
+
+          <!-- Gráfico 4: Velocidade do vento ao longo dos dias -->
+          <article class="card-grafico">
+            <div class="grafico-cabecalho">
+              <h3 class="grafico-titulo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>
+                Velocidade do Vento ao Longo dos Dias
+              </h3>
+              <span class="grafico-unidade">km/h</span>
+            </div>
+            <div class="grafico-container">
+              <canvas id="grafico-vento"></canvas>
+            </div>
+          </article>
+
+          <!-- Gráfico 5: Rosa dos Ventos (Gráfico Polar) -->
+          <article class="card-grafico grafico-card-destaque">
+            <div class="grafico-cabecalho">
+              <h3 class="grafico-titulo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                Direção do Vento – Rosa dos Ventos
+              </h3>
+              <span class="grafico-unidade">Ocorrências</span>
+            </div>
+            <div class="grafico-container" style="height: 320px;">
+              <canvas id="grafico-direcao"></canvas>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- SEÇÃO 3: TABELA COMPLETA COM TODAS AS MEDIÇÕES -->
+      <section aria-labelledby="titulo-tabela">
+        <h2 id="titulo-tabela" class="secao-titulo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Tabela Completa de Medições
+        </h2>
+
+        <div class="card-tabela">
+          <p class="tabela-info-topo">
+            Medições organizadas da mais recente para a mais antiga. Arraste horizontalmente para ver todas as colunas no celular.
+          </p>
+          <div class="tabela-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Hora</th>
+                  <th>Temperatura (°C)</th>
+                  <th>Umidade (%)</th>
+                  <th>Chuva (mm)</th>
+                  <th>Vento (km/h)</th>
+                  <th>Direção da Bússola</th>
+                </tr>
+              </thead>
+              <tbody id="corpo-tabela-medicoes">
+                <!-- Linhas inseridas dinamicamente via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- =========================================================
+       RODAPÉ DISCRETO DO TRABALHO
+       ========================================================= -->
+  <footer class="rodape">
+    <p>Projeto de Ciências – Daniela Patrício Ribeiro – 6º Ano C – Colégio FAAT – Atibaia/SP – 2026</p>
+    <p style="font-size: 0.78rem; color: #9ca3af; margin-top: 0.25rem;">
+      Estação Meteorológica Caseira Inteligente &bull; Gráficos interativos com Chart.js
+    </p>
+  </footer>
+
+  <!-- =========================================================
+       CARREGAMENTO DOS DADOS EXTERNOS
+       Arquivo separado para facilitar a atualização das medições
+       ========================================================= -->
+  <script src="dados.js"></script>
+
+  <!-- =========================================================
+       CÓDIGO JAVASCRIPT: PROCESSAMENTO E RENDERIZAÇÃO
+       ========================================================= -->
+  <script>
+    /* =========================================================
+       NOMES COMPLETOS DAS 8 DIREÇÕES DA BÚSSOLA EM PORTUGUÊS
+       ========================================================= */
+    const NOMES_DIRECOES = {
+      "N": "Norte",
+      "NE": "Nordeste",
+      "L": "Leste",
+      "SE": "Sudeste",
+      "S": "Sul",
+      "SO": "Sudoeste",
+      "O": "Oeste",
+      "NO": "Noroeste"
+    };
+
+    // Ordem oficial dos 8 pontos cardeais e colaterais da Rosa dos Ventos
+    const PONTOS_ROSA_VENTOS = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
+
+    /* =========================================================
+       FUNÇÃO AUXILIAR: FORMATAÇÃO DE NÚMEROS (PADRÃO BRASILEIRO)
+       Vírgula decimal e no máximo 1 casa decimal
+       ========================================================= */
+    function formatarBR(valor, casasMaximas = 1) {
+      if (valor === undefined || valor === null || isNaN(valor)) return "0,0";
+      return Number(valor).toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: casasMaximas
+      });
+    }
+
+    /* Converte data de AAAA-MM-DD para DD/MM/AAAA */
+    function formatarDataBR(dataIso) {
+      if (!dataIso || typeof dataIso !== "string") return "--";
+      const partes = dataIso.split("-");
+      if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+      return dataIso;
+    }
+
+    /* =========================================================
+       FUNÇÃO PRINCIPAL: EXECUÇÃO AO CARREGAR A PÁGINA
+       ========================================================= */
+    document.addEventListener("DOMContentLoaded", () => {
+      // Verifica se a lista de medições existe e possui dados
+      if (typeof medicoes === "undefined" || !Array.isArray(medicoes) || medicoes.length === 0) {
+        document.getElementById("secao-vazia").style.display = "block";
+        document.getElementById("secao-resultados").style.display = "none";
+        return;
+      }
+
+      // Ordena as medições da mais recente para a mais antiga (para exibição e tabela)
+      const medicoesDecrescente = [...medicoes].sort((a, b) => {
+        const chaveA = `${a.data}T${a.hora || "00:00"}`;
+        const chaveB = `${b.data}T${b.hora || "00:00"}`;
+        return chaveB.localeCompare(chaveA);
+      });
+
+      // Ordena cronologicamente para os gráficos temporais (mais antigo ao mais recente)
+      const medicoesCronologicas = [...medicoes].sort((a, b) => {
+        const chaveA = `${a.data}T${a.hora || "00:00"}`;
+        const chaveB = `${b.data}T${b.hora || "00:00"}`;
+        return chaveA.localeCompare(chaveB);
+      });
+
+      // 1. Processamento e exibição dos cartões de resumo
+      preencherResumo(medicoes);
+
+      // 2. Renderização dos gráficos interativos
+      renderizarGraficos(medicoesCronologicas);
+
+      // 3. Preenchimento da tabela completa
+      preencherTabela(medicoesDecrescente);
+    });
+
+    /* =========================================================
+       1. CÁLCULO E PREENCHIMENTO DOS CARTÕES DE RESUMO
+       ========================================================= */
+    function preencherResumo(lista) {
+      const total = lista.length;
+
+      let somaTemp = 0;
+      let tempMax = -Infinity;
+      let tempMin = Infinity;
+
+      let somaUmidade = 0;
+
+      let somaChuva = 0;
+      let chuvaMaxValor = -Infinity;
+      let chuvaMaxData = "--";
+
+      let somaVento = 0;
+      let ventoMax = -Infinity;
+
+      // Contagem para direção predominante
+      const contagemDirecoes = {};
+
+      lista.forEach(item => {
+        // Temperatura
+        const t = Number(item.temperatura);
+        somaTemp += t;
+        if (t > tempMax) tempMax = t;
+        if (t < tempMin) tempMin = t;
+
+        // Umidade
+        somaUmidade += Number(item.umidade);
+
+        // Chuva
+        const c = Number(item.chuva);
+        somaChuva += c;
+        if (c > chuvaMaxValor) {
+          chuvaMaxValor = c;
+          chuvaMaxData = item.data;
+        }
+
+        // Vento
+        const v = Number(item.vento);
+        somaVento += v;
+        if (v > ventoMax) ventoMax = v;
+
+        // Direção
+        const dir = (item.direcao || "").toUpperCase().trim();
+        if (dir) {
+          contagemDirecoes[dir] = (contagemDirecoes[dir] || 0) + 1;
+        }
+      });
+
+      // Médias
+      const tempMedia = somaTemp / total;
+      const umidadeMedia = somaUmidade / total;
+      const ventoMedio = somaVento / total;
+
+      // Determinação da direção predominante
+      let direcaoPredominante = "--";
+      let maxOcorrencias = 0;
+      for (const [dir, qtd] of Object.entries(contagemDirecoes)) {
+        if (qtd > maxOcorrencias) {
+          maxOcorrencias = qtd;
+          direcaoPredominante = dir;
+        }
+      }
+
+      // Atualiza valores no DOM
+      document.getElementById("card-temp-media").textContent = `${formatarBR(tempMedia)} °C`;
+      document.getElementById("card-temp-max").textContent = `${formatarBR(tempMax)} °C`;
+      document.getElementById("card-temp-min").textContent = `${formatarBR(tempMin)} °C`;
+
+      document.getElementById("card-umidade-media").textContent = `${formatarBR(umidadeMedia)}%`;
+
+      document.getElementById("card-chuva-total").textContent = `${formatarBR(somaChuva)} mm`;
+      if (chuvaMaxValor > 0) {
+        document.getElementById("card-chuva-max-dia").textContent = `${formatarDataBR(chuvaMaxData)} (${formatarBR(chuvaMaxValor)} mm)`;
+      } else {
+        document.getElementById("card-chuva-max-dia").textContent = "Sem chuva registrada";
+      }
+
+      document.getElementById("card-vento-medio").textContent = `${formatarBR(ventoMedio)} km/h`;
+      document.getElementById("card-vento-max").textContent = `${formatarBR(ventoMax)} km/h`;
+
+      const nomeExtensoDir = NOMES_DIRECOES[direcaoPredominante] || "";
+      document.getElementById("card-direcao-predominante").textContent = direcaoPredominante;
+      document.getElementById("card-direcao-detalhes").textContent = nomeExtensoDir 
+        ? `${nomeExtensoDir} (${maxOcorrencias} ${maxOcorrencias === 1 ? "ocorrência" : "ocorrências"})`
+        : "Nenhuma direção registrada";
+
+      document.getElementById("card-total-medicoes").textContent = total;
+    }
+
+    /* =========================================================
+       2. RENDERIZAÇÃO DOS GRÁFICOS DINÂMICOS COM CHART.JS
+       ========================================================= */
+    function renderizarGraficos(listaCronologica) {
+      // Destrói gráficos pré-existentes se houver (para evitar conflitos em recarregamentos)
+      ["grafico-temperatura", "grafico-umidade", "grafico-chuva", "grafico-vento", "grafico-direcao"].forEach(id => {
+        const elementoCanvas = document.getElementById(id);
+        if (elementoCanvas) {
+          const graficoExistente = Chart.getChart(elementoCanvas);
+          if (graficoExistente) graficoExistente.destroy();
+        }
+      });
+
+      // Cores obtidas das variáveis CSS para consistência visual
+      const estilo = getComputedStyle(document.documentElement);
+      const corPrincipal = estilo.getPropertyValue("--cor-principal").trim() || "#0b3c6d";
+      const corSecundaria = estilo.getPropertyValue("--cor-secundaria").trim() || "#f28500";
+
+      // Rótulos do eixo X para os gráficos temporais: "DD/MM HH:MM"
+      const labelsTemporais = listaCronologica.map(item => {
+        const diaMes = formatarDataBR(item.data).substring(0, 5); // Pega apenas DD/MM
+        return item.hora ? `${diaMes} ${item.hora}` : diaMes;
+      });
+
+      // Opções visuais padrão compartilhadas pelos gráficos de linha
+      const opcoesPadraoLinha = (tituloEixoY, unidade) => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => ` ${context.dataset.label}: ${formatarBR(context.parsed.y)} ${unidade}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { maxRotation: 45, font: { size: 11 } }
+          },
+          y: {
+            title: { display: true, text: tituloEixoY, font: { weight: "bold" } },
+            ticks: {
+              callback: (v) => `${formatarBR(v)} ${unidade}`
+            }
+          }
+        }
+      });
+
+      // --- Gráfico 1: Temperatura (°C) ---
+      new Chart(document.getElementById("grafico-temperatura"), {
+        type: "line",
+        data: {
+          labels: labelsTemporais,
+          datasets: [{
+            label: "Temperatura",
+            data: listaCronologica.map(i => i.temperatura),
+            borderColor: corSecundaria,
+            backgroundColor: "rgba(242, 133, 0, 0.15)",
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: corSecundaria
+          }]
+        },
+        options: opcoesPadraoLinha("Temperatura (°C)", "°C")
+      });
+
+      // --- Gráfico 2: Umidade do Ar (%) ---
+      new Chart(document.getElementById("grafico-umidade"), {
+        type: "line",
+        data: {
+          labels: labelsTemporais,
+          datasets: [{
+            label: "Umidade",
+            data: listaCronologica.map(i => i.umidade),
+            borderColor: corPrincipal,
+            backgroundColor: "rgba(11, 60, 109, 0.12)",
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: corPrincipal
+          }]
+        },
+        options: {
+          ...opcoesPadraoLinha("Umidade do Ar (%)", "%"),
+          scales: {
+            ...opcoesPadraoLinha("Umidade do Ar (%)", "%").scales,
+            y: {
+              title: { display: true, text: "Umidade do Ar (%)", font: { weight: "bold" } },
+              min: 0,
+              max: 100,
+              ticks: { callback: (v) => `${v}%` }
+            }
+          }
+        }
+      });
+
+      // --- Gráfico 3: Chuva por Dia (mm) - Gráfico de Barras ---
+      new Chart(document.getElementById("grafico-chuva"), {
+        type: "bar",
+        data: {
+          labels: labelsTemporais,
+          datasets: [{
+            label: "Chuva",
+            data: listaCronologica.map(i => i.chuva),
+            backgroundColor: "rgba(14, 116, 144, 0.75)",
+            borderColor: "#0891b2",
+            borderWidth: 1.5,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` Precipitação: ${formatarBR(context.parsed.y)} mm`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { maxRotation: 45, font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: "Chuva (mm)", font: { weight: "bold" } },
+              ticks: { callback: (v) => `${formatarBR(v)} mm` }
+            }
+          }
+        }
+      });
+
+      // --- Gráfico 4: Velocidade do Vento (km/h) ---
+      new Chart(document.getElementById("grafico-vento"), {
+        type: "line",
+        data: {
+          labels: labelsTemporais,
+          datasets: [{
+            label: "Velocidade do Vento",
+            data: listaCronologica.map(i => i.vento),
+            borderColor: "#0284c7",
+            backgroundColor: "rgba(2, 132, 199, 0.15)",
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: "#0284c7"
+          }]
+        },
+        options: opcoesPadraoLinha("Velocidade do Vento (km/h)", "km/h")
+      });
+
+      // --- Gráfico 5: Rosa dos Ventos (Gráfico Polar) ---
+      // Conta as ocorrências de cada um dos 8 pontos na ordem N, NE, L, SE, S, SO, O, NO
+      const contagemPontos = PONTOS_ROSA_VENTOS.map(ponto => {
+        return listaCronologica.filter(item => (item.direcao || "").toUpperCase().trim() === ponto).length;
+      });
+
+      new Chart(document.getElementById("grafico-direcao"), {
+        type: "polarArea",
+        data: {
+          labels: PONTOS_ROSA_VENTOS.map(p => `${p} (${NOMES_DIRECOES[p]})`),
+          datasets: [{
+            data: contagemPontos,
+            backgroundColor: [
+              "rgba(11, 60, 109, 0.85)",   // N
+              "rgba(242, 133, 0, 0.85)",  // NE
+              "rgba(14, 116, 144, 0.85)",  // L
+              "rgba(217, 119, 6, 0.85)",   // SE
+              "rgba(2, 132, 199, 0.85)",   // S
+              "rgba(234, 88, 12, 0.85)",   // SO
+              "rgba(79, 70, 229, 0.85)",   // O
+              "rgba(245, 158, 11, 0.85)"   // NO
+            ],
+            borderColor: "#ffffff",
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "right",
+              labels: {
+                boxWidth: 14,
+                font: { size: 11, weight: "bold" }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` ${context.label}: ${context.raw} ${context.raw === 1 ? "medição" : "medições"}`
+              }
+            }
+          },
+          scales: {
+            r: {
+              ticks: {
+                stepSize: 1,
+                precision: 0,
+                backdropColor: "transparent"
+              },
+              grid: { color: "rgba(0, 0, 0, 0.08)" }
+            }
+          }
+        }
+      });
+    }
+
+    /* =========================================================
+       3. PREENCHIMENTO DA TABELA COMPLETA (ORDENADA DECRESCENTE)
+       ========================================================= */
+    function preencherTabela(listaDecrescente) {
+      const corpoTabela = document.getElementById("corpo-tabela-medicoes");
+      let htmlLinhas = "";
+
+      listaDecrescente.forEach(item => {
+        const dir = (item.direcao || "").toUpperCase().trim();
+        const nomeDir = NOMES_DIRECOES[dir] ? `${dir} (${NOMES_DIRECOES[dir]})` : dir;
+
+        htmlLinhas += `
+          <tr>
+            <td><strong>${formatarDataBR(item.data)}</strong></td>
+            <td>${item.hora || "--:--"}</td>
+            <td>${formatarBR(item.temperatura)} °C</td>
+            <td>${formatarBR(item.umidade)}%</td>
+            <td>${formatarBR(item.chuva)} mm</td>
+            <td>${formatarBR(item.vento)} km/h</td>
+            <td><span class="badge-direcao" title="${nomeDir}">${dir}</span></td>
+          </tr>
+        `;
+      });
+
+      corpoTabela.innerHTML = htmlLinhas;
+    }
+  </script>
+</body>
+</html>

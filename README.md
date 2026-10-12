@@ -1,20 +1,47 @@
-# Anemômetro Caseiro – Medidor de Vento
+# Estação Meteorológica Caseira Inteligente & Anemômetro Caseiro
 
-Projeto escolar de Ciências desenvolvido para o **Colégio FAAT** (Atibaia, SP).
+Projeto de Ciências desenvolvido para a Feira de Ciências e Open Campus do **Colégio FAAT** (Atibaia, SP).
 
-- **Aluna:** Daniela Patrício Ribeiro
-- **Turma:** 6º ano
-- **Escola:** Colégio FAAT – Atibaia/SP
+- **Projeto:** Estação Meteorológica Caseira Inteligente
+- **Aluna:** Daniela Patrício Ribeiro – 6º Ano C
+- **Orientador:** Prof. Marcelo de Castro
+- **Escola:** Colégio FAAT – Atibaia, São Paulo
+- **Período das medições:** 11 a 30 de setembro de 2026
+- **Apresentação:** Open Campus – 17 de outubro de 2026
 
-## Sobre o Projeto
+---
 
-Aplicativo web responsivo desenvolvido em HTML, CSS e JavaScript puros para calcular a velocidade do vento a partir do número de voltas de um anemômetro caseiro de copos (material reciclável) em medições fixas de 10 segundos.
+## 🌐 Páginas Publicadas no GitHub Pages
 
-### Recursos
+- **Painel de Resultados da Estação:**  
+  [https://douglasdealmeidaribeiro.github.io/anemometro-faat/resultados.html](https://douglasdealmeidaribeiro.github.io/anemometro-faat/resultados.html)
 
-- Cálculo automático e em tempo real da velocidade em **km/h**, **m/s** e rotações por minuto (**RPM**).
-- Classificação imediata na **Escala de Beaufort**.
-- Cronômetro de 10 segundos com alertas visual e sonoro.
-- Histórico de medições na sessão com média automática.
-- Seção explicativa com fórmulas físicas e didáticas de Ciências.
-- Publicado via **GitHub Pages**.
+- **Calculadora do Anemômetro Caseiro:**  
+  [https://douglasdealmeidaribeiro.github.io/anemometro-faat/index.html](https://douglasdealmeidaribeiro.github.io/anemometro-faat/index.html)
+
+---
+
+## 📁 Estrutura de Arquivos
+
+- `resultados.html`: Página de exibição dos resultados da estação meteorológica, com cartões de resumo calculados automaticamente, gráficos interativos com Chart.js e tabela completa de dados.
+- `dados.js`: Arquivo separado com a lista `medicoes` em JavaScript puro, permitindo atualizar ou inserir novas medições sem alterar o layout da página.
+- `index.html`: Aplicativo web responsivo para contagem e cálculo da velocidade do vento em 10 segundos, com cronômetro visual/sonoro e classificação na Escala de Beaufort.
+- `logo-faat.png`: Logotipo do Colégio FAAT (com fallback transparente caso não esteja presente).
+
+---
+
+## ⚙️ Como Atualizar as Medições
+
+Abra o arquivo `dados.js` e adicione uma nova entrada seguindo o modelo:
+
+```javascript
+{
+  data: "2026-09-16",         // Data no formato AAAA-MM-DD
+  hora: "15:00",              // Horário no formato HH:MM
+  temperatura: 24.5,          // Temperatura em °C
+  umidade: 58.0,              // Umidade do ar em %
+  chuva: 0.0,                 // Precipitação em mm (pluviômetro PET)
+  vento: 8.5,                 // Velocidade em km/h (anemômetro)
+  direcao: "SE"               // Bússola: N, NE, L, SE, S, SO, O ou NO
+},
+```
