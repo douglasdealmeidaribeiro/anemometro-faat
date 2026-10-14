@@ -689,7 +689,7 @@
         <p><strong>Aluna:</strong> Daniela Patrício Ribeiro &bull; <strong>Turma:</strong> 6º Ano C</p>
         <p><strong>Orientador:</strong> Prof. Marcelo de Castro &bull; <strong>Escola:</strong> Colégio FAAT – Atibaia, São Paulo</p>
         <p class="detalhes-apresentacao">
-          Período das medições: 11 a 30 de setembro de 2026 &bull; Apresentação: Open Campus – 17 de outubro de 2026
+          Período das medições: 8 a 13 de outubro de 2026 &bull; Apresentação: Open Campus – 17 de outubro de 2026
         </p>
       </div>
     </div>
@@ -752,7 +752,7 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
               Umidade (%):
             </label>
-            <input type="number" id="input-umid" min="0" max="100" step="0.5" placeholder="Ex: 60" required class="form-input">
+            <input type="number" id="input-umid" min="0" max="100" step="0.5" placeholder="Opcional" class="form-input">
           </div>
 
           <!-- Campo 5: Chuva -->
@@ -969,8 +969,8 @@
             </div>
             <div>
               <div class="card-valor-principal" id="card-total-medicoes">--</div>
-              <div class="card-detalhes">
-                Registradas entre 11/09 e 30/09/2026
+              <div class="card-detalhes" id="card-periodo-medicoes">
+                Registradas entre 08/10 e 13/10/2026
               </div>
             </div>
           </article>
@@ -1155,6 +1155,11 @@
     /* =========================================================
        FUNÇÕES AUXILIARES DE FORMATAÇÃO (PADRÃO BRASILEIRO)
        ========================================================= */
+    // Indica se um valor foi medido (null/vazio = não medido)
+    function temValor(valor) {
+      return valor !== null && valor !== undefined && valor !== "" && !isNaN(Number(valor));
+    }
+
     function formatarBR(valor, casasMaximas = 1) {
       if (valor === undefined || valor === null || isNaN(valor)) return "0,0";
       return Number(valor).toLocaleString("pt-BR", {
@@ -1177,8 +1182,10 @@
        GERENCIAMENTO DE DADOS (LOCALSTORAGE / DADOS.JS)
        ========================================================= */
     function carregarMedicoesIniciais() {
+      // Se o arquivo dados.js mudou desde o último salvamento, usa os dados novos do arquivo
+      const origemAtual = typeof medicoes !== "undefined" ? JSON.stringify(medicoes) : "";
       const dadosSalvos = localStorage.getItem(CHAVE_STORAGE);
-      if (dadosSalvos) {
+      if (dadosSalvos && localStorage.getItem(CHAVE_STORAGE + "_origem") === origemAtual) {
         try {
           const parsed = JSON.parse(dadosSalvos);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -1202,6 +1209,7 @@
 
     function salvarMedicoesNoStorage() {
       localStorage.setItem(CHAVE_STORAGE, JSON.stringify(listaMedicoes));
+      localStorage.setItem(CHAVE_STORAGE + "_origem", typeof medicoes !== "undefined" ? JSON.stringify(medicoes) : "");
     }
 
     function garantirIdsMedicoes() {
@@ -1265,7 +1273,8 @@
       const valData = document.getElementById("input-data").value.trim();
       const valHora = document.getElementById("input-hora").value.trim();
       const valTemp = parseFloat(document.getElementById("input-temp").value);
-      const valUmid = parseFloat(document.getElementById("input-umid").value);
+      const textoUmid = document.getElementById("input-umid").value.trim();
+      const valUmid = textoUmid === "" ? null : parseFloat(textoUmid);
       const valChuva = parseFloat(document.getElementById("input-chuva").value);
       const valVento = parseFloat(document.getElementById("input-vento").value);
       const valDir = document.getElementById("select-direcao").value;
@@ -1275,11 +1284,11 @@
         mostrarFeedback("Por favor, preencha a data e o horário da medição.", "info");
         return;
       }
-      if (isNaN(valTemp) || isNaN(valUmid) || isNaN(valChuva) || isNaN(valVento)) {
+      if (isNaN(valTemp) || (valUmid !== null && isNaN(valUmid)) || isNaN(valChuva) || isNaN(valVento)) {
         mostrarFeedback("Por favor, preencha todos os valores numéricos corretamente.", "info");
         return;
       }
-      if (valUmid < 0 || valUmid > 100) {
+      if (valUmid !== null && (valUmid < 0 || valUmid > 100)) {
         mostrarFeedback("A umidade do ar deve estar entre 0% e 100%.", "info");
         return;
       }
@@ -1297,9 +1306,9 @@
         data: valData,
         hora: valHora,
         temperatura: Math.round(valTemp * 10) / 10,
-        umidade: Math.round(valUmid * 10) / 10,
+        umidade: valUmid === null ? null : Math.round(valUmid * 10) / 10,
         chuva: Math.round(valChuva * 10) / 10,
-        vento: Math.round(valVento * 10) / 10,
+        vento: Math.round(valVento * 100) / 100,
         direcao: valDir
       };
 
@@ -1343,9 +1352,9 @@
     data: "${m.data}",
     hora: "${m.hora || '12:00'}",
     temperatura: ${Number(m.temperatura).toFixed(1)},
-    umidade: ${Number(m.umidade).toFixed(1)},
+    umidade: ${temValor(m.umidade) ? Number(m.umidade).toFixed(1) : "null"},
     chuva: ${Number(m.chuva).toFixed(1)},
-    vento: ${Number(m.vento).toFixed(1)},
+    vento: ${Number(m.vento).toFixed(2)},
     direcao: "${m.direcao || 'NE'}"
   }`;
       }).join(",\n");
@@ -1468,6 +1477,7 @@ ${linhasFormatadas}
       let tempMin = Infinity;
 
       let somaUmidade = 0;
+      let totalUmidade = 0;
 
       let somaChuva = 0;
       let chuvaMaxValor = -Infinity;
@@ -1484,7 +1494,10 @@ ${linhasFormatadas}
         if (t > tempMax) tempMax = t;
         if (t < tempMin) tempMin = t;
 
-        somaUmidade += Number(item.umidade);
+        if (temValor(item.umidade)) {
+          somaUmidade += Number(item.umidade);
+          totalUmidade++;
+        }
 
         const c = Number(item.chuva);
         somaChuva += c;
@@ -1504,7 +1517,7 @@ ${linhasFormatadas}
       });
 
       const tempMedia = somaTemp / total;
-      const umidadeMedia = somaUmidade / total;
+      const umidadeMedia = totalUmidade > 0 ? somaUmidade / totalUmidade : null;
       const ventoMedio = somaVento / total;
 
       let direcaoPredominante = "--";
@@ -1520,7 +1533,7 @@ ${linhasFormatadas}
       document.getElementById("card-temp-max").textContent = `${formatarBR(tempMax)} °C`;
       document.getElementById("card-temp-min").textContent = `${formatarBR(tempMin)} °C`;
 
-      document.getElementById("card-umidade-media").textContent = `${formatarBR(umidadeMedia)}%`;
+      document.getElementById("card-umidade-media").textContent = umidadeMedia === null ? "Não medida" : `${formatarBR(umidadeMedia)}%`;
 
       document.getElementById("card-chuva-total").textContent = `${formatarBR(somaChuva)} mm`;
       if (chuvaMaxValor > 0) {
@@ -1529,8 +1542,8 @@ ${linhasFormatadas}
         document.getElementById("card-chuva-max-dia").textContent = "Sem chuva registrada";
       }
 
-      document.getElementById("card-vento-medio").textContent = `${formatarBR(ventoMedio)} km/h`;
-      document.getElementById("card-vento-max").textContent = `${formatarBR(ventoMax)} km/h`;
+      document.getElementById("card-vento-medio").textContent = `${formatarBR(ventoMedio, 2)} km/h`;
+      document.getElementById("card-vento-max").textContent = `${formatarBR(ventoMax, 2)} km/h`;
 
       const nomeExtensoDir = NOMES_DIRECOES[direcaoPredominante] || "";
       document.getElementById("card-direcao-predominante").textContent = direcaoPredominante;
@@ -1539,6 +1552,14 @@ ${linhasFormatadas}
         : "Nenhuma direção registrada";
 
       document.getElementById("card-total-medicoes").textContent = total;
+
+      // Período real das medições (primeira e última data)
+      const datas = lista.map(i => i.data).filter(Boolean).sort();
+      if (datas.length > 0) {
+        const curta = d => formatarDataBR(d).slice(0, 5);
+        document.getElementById("card-periodo-medicoes").textContent =
+          `Registradas entre ${curta(datas[0])} e ${formatarDataBR(datas[datas.length - 1])}`;
+      }
     }
 
     /* =========================================================
@@ -1569,7 +1590,7 @@ ${linhasFormatadas}
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (context) => ` ${context.dataset.label}: ${formatarBR(context.parsed.y)} ${unidade}`
+              label: (context) => ` ${context.dataset.label}: ${formatarBR(context.parsed.y, 2)} ${unidade}`
             }
           }
         },
@@ -1615,7 +1636,7 @@ ${linhasFormatadas}
           labels: labelsTemporais,
           datasets: [{
             label: "Umidade",
-            data: listaCronologica.map(i => i.umidade),
+            data: listaCronologica.map(i => temValor(i.umidade) ? Number(i.umidade) : null),
             borderColor: corPrincipal,
             backgroundColor: "rgba(11, 60, 109, 0.12)",
             borderWidth: 3,
@@ -1772,9 +1793,9 @@ ${linhasFormatadas}
             <td><strong>${formatarDataBR(item.data)}</strong></td>
             <td>${item.hora || "--:--"}</td>
             <td>${formatarBR(item.temperatura)} °C</td>
-            <td>${formatarBR(item.umidade)}%</td>
+            <td>${temValor(item.umidade) ? formatarBR(item.umidade) + "%" : "--"}</td>
             <td>${formatarBR(item.chuva)} mm</td>
-            <td>${formatarBR(item.vento)} km/h</td>
+            <td>${formatarBR(item.vento, 2)} km/h</td>
             <td><span class="badge-direcao" title="${nomeDir}">${dir}</span></td>
             <td>
               <button type="button" class="btn-excluir" onclick="removerMedicao('${item.id}')" title="Excluir medição">

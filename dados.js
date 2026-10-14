@@ -13,13 +13,13 @@
  * 4. Altere os valores com os dados medidos nos seus instrumentos:
  * 
  *    {
- *      data: "2026-09-16",         // Data da medição no formato "AAAA-MM-DD"
- *      hora: "15:00",              // Horário no formato "HH:MM"
- *      temperatura: 24.5,          // Temperatura em °C (use ponto para decimal)
- *      umidade: 58.0,              // Umidade do ar em %
+ *      data: "2026-10-08",         // Data da medição no formato "AAAA-MM-DD"
+ *      hora: "14:30",              // Horário no formato "HH:MM"
+ *      temperatura: 27.0,          // Temperatura em °C (use ponto para decimal)
+ *      umidade: null,              // Umidade do ar em % (use null se não foi medida)
  *      chuva: 0.0,                 // Chuva em mm (do pluviômetro PET)
- *      vento: 8.5,                 // Vento em km/h (calculado pelo anemômetro)
- *      direcao: "SE"               // Direção da bússola: N, NE, L, SE, S, SO, O ou NO
+ *      vento: 1.19,                // Vento em km/h (calculado pelo anemômetro)
+ *      direcao: "N"                // Direção da bússola: N, NE, L, SE, S, SO, O ou NO
  *    },
  * 
  * ATENÇÃO:
@@ -29,55 +29,66 @@
  */
 
 // Lista de medições meteorológicas realizadas no período
+// Registros reais do caderno (08/10 a 13/10/2026).
+// Vento: km/h = voltas × 0,4712 m ÷ 10 s × 3,6 (raio do anemômetro = 7,5 cm)
+// Chuva: o pluviômetro acumula; aqui está a chuva NOVA de cada dia.
 const medicoes = [
-  // EXEMPLO – substitua pelos dados reais
   {
-    data: "2026-09-11",
-    hora: "09:00",
-    temperatura: 19.4,
-    umidade: 72.0,
-    chuva: 0.0,
-    vento: 6.2,
-    direcao: "SE"
-  },
-  // EXEMPLO – substitua pelos dados reais
-  {
-    data: "2026-09-15",
+    data: "2026-10-08",
     hora: "14:30",
-    temperatura: 27.8,
-    umidade: 48.5,
+    temperatura: 27.0,
+    umidade: null,              // umidade não foi medida
     chuva: 0.0,
-    vento: 12.4,
+    vento: 1.19,                 // 7 voltas em 10 segundos
+    direcao: "N"
+  },
+  {
+    data: "2026-10-09",
+    hora: "14:30",
+    temperatura: 33.0,
+    umidade: null,              // umidade não foi medida
+    chuva: 0.0,
+    vento: 0.68,                 // 4 voltas em 10 segundos
+    direcao: "NO"
+  },
+  {
+    // pluviômetro marcou 15 mm (choveu 15 mm)
+    data: "2026-10-10",
+    hora: "14:30",
+    temperatura: 26.0,
+    umidade: null,              // umidade não foi medida
+    chuva: 15.0,
+    vento: 0.85,                 // 5 voltas em 10 segundos
+    direcao: "N"
+  },
+  {
+    // pluviômetro continuou em 15 mm (sem chuva nova)
+    data: "2026-10-11",
+    hora: "14:30",
+    temperatura: 23.0,
+    umidade: null,              // umidade não foi medida
+    chuva: 0.0,
+    vento: 0.85,                 // 5 voltas em 10 segundos
     direcao: "NE"
   },
-  // EXEMPLO – substitua pelos dados reais
   {
-    data: "2026-09-20",
-    hora: "16:00",
-    temperatura: 22.1,
-    umidade: 85.0,
-    chuva: 14.5,
-    vento: 18.7,
+    // pluviômetro foi de 15 mm para 27 mm (choveu 12 mm)
+    data: "2026-10-12",
+    hora: "14:30",
+    temperatura: 25.0,
+    umidade: null,              // umidade não foi medida
+    chuva: 12.0,
+    vento: 1.02,                 // 6 voltas em 10 segundos
     direcao: "S"
   },
-  // EXEMPLO – substitua pelos dados reais
   {
-    data: "2026-09-24",
-    hora: "10:15",
-    temperatura: 25.3,
-    umidade: 55.0,
-    chuva: 2.0,
-    vento: 9.8,
-    direcao: "L"
-  },
-  // EXEMPLO – substitua pelos dados reais
-  {
-    data: "2026-09-30",
-    hora: "15:45",
-    temperatura: 28.6,
-    umidade: 42.0,
+    // pluviômetro continuou em 27 mm; horário não anotado (considerado 14:30)
+    data: "2026-10-13",
+    hora: "14:30",
+    temperatura: 25.0,
+    umidade: null,              // umidade não foi medida
     chuva: 0.0,
-    vento: 15.1,
-    direcao: "NE"
+    vento: 1.02,                 // 6 voltas em 10 segundos
+    direcao: "N"
   }
 ];

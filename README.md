@@ -6,7 +6,7 @@ Projeto de Ciências desenvolvido para a Feira de Ciências e Open Campus do **C
 - **Aluna:** Daniela Patrício Ribeiro – 6º Ano C
 - **Orientador:** Prof. Marcelo de Castro
 - **Escola:** Colégio FAAT – Atibaia, São Paulo
-- **Período das medições:** 11 a 30 de setembro de 2026
+- **Período das medições:** 8 a 13 de outubro de 2026
 - **Apresentação:** Open Campus – 17 de outubro de 2026
 
 ---
@@ -36,12 +36,12 @@ Abra o arquivo `dados.js` e adicione uma nova entrada seguindo o modelo:
 
 ```javascript
 {
-  data: "2026-09-16",         // Data no formato AAAA-MM-DD
-  hora: "15:00",              // Horário no formato HH:MM
-  temperatura: 24.5,          // Temperatura em °C
-  umidade: 58.0,              // Umidade do ar em %
+  data: "2026-10-08",         // Data no formato AAAA-MM-DD
+  hora: "14:30",              // Horário no formato HH:MM
+  temperatura: 27.0,          // Temperatura em °C
+  umidade: null,              // Umidade do ar em %
   chuva: 0.0,                 // Precipitação em mm (pluviômetro PET)
-  vento: 8.5,                 // Velocidade em km/h (anemômetro)
-  direcao: "SE"               // Bússola: N, NE, L, SE, S, SO, O ou NO
+  vento: 1.19,                // Velocidade em km/h (anemômetro)
+  direcao: "N"                // Bússola: N, NE, L, SE, S, SO, O ou NO
 },
 ```
