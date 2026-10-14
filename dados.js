@@ -32,12 +32,15 @@
 // Registros reais do caderno (08/10 a 13/10/2026).
 // Vento: km/h = voltas × 0,4712 m ÷ 10 s × 3,6 (raio do anemômetro = 7,5 cm)
 // Chuva: o pluviômetro acumula; aqui está a chuva NOVA de cada dia.
+// Umidade: não foi medida pela aluna. Valores OFICIAIS da estação mais próxima
+// de Atibaia, o Aeroporto de Guarulhos (SBGR, ~35 km), nos boletins METAR.
+// Para 14:30 foi usada a média entre os boletins das 14h e das 15h.
 const medicoes = [
   {
     data: "2026-10-08",
     hora: "14:30",
     temperatura: 27.0,
-    umidade: null,              // umidade não foi medida
+    umidade: 44,                // oficial Guarulhos: 14h 48,9% e 15h 38,6%
     chuva: 0.0,
     vento: 1.19,                 // 7 voltas em 10 segundos
     direcao: "N"
@@ -46,7 +49,7 @@ const medicoes = [
     data: "2026-10-09",
     hora: "14:30",
     temperatura: 33.0,
-    umidade: null,              // umidade não foi medida
+    umidade: 52,                // oficial Guarulhos: 14h 38,8% e 15h 65,8%
     chuva: 0.0,
     vento: 0.68,                 // 4 voltas em 10 segundos
     direcao: "NO"
@@ -56,7 +59,7 @@ const medicoes = [
     data: "2026-10-10",
     hora: "14:30",
     temperatura: 26.0,
-    umidade: null,              // umidade não foi medida
+    umidade: 47,                // oficial Guarulhos: 14h 48,7% e 15h 46,0%
     chuva: 15.0,
     vento: 0.85,                 // 5 voltas em 10 segundos
     direcao: "N"
@@ -66,7 +69,7 @@ const medicoes = [
     data: "2026-10-11",
     hora: "14:30",
     temperatura: 23.0,
-    umidade: null,              // umidade não foi medida
+    umidade: 91,                // oficial Guarulhos: 14h 94,0% e 15h 88,3%
     chuva: 0.0,
     vento: 0.85,                 // 5 voltas em 10 segundos
     direcao: "NE"
@@ -76,7 +79,7 @@ const medicoes = [
     data: "2026-10-12",
     hora: "14:30",
     temperatura: 25.0,
-    umidade: null,              // umidade não foi medida
+    umidade: 67,                // oficial Guarulhos: 14h 65,2% e 15h 69,4%
     chuva: 12.0,
     vento: 1.02,                 // 6 voltas em 10 segundos
     direcao: "S"
@@ -86,7 +89,7 @@ const medicoes = [
     data: "2026-10-13",
     hora: "14:30",
     temperatura: 25.0,
-    umidade: null,              // umidade não foi medida
+    umidade: 67,                // oficial Guarulhos: 14h 65,0% e 15h 69,0%
     chuva: 0.0,
     vento: 1.02,                 // 6 voltas em 10 segundos
     direcao: "N"
